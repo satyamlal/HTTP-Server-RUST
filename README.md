@@ -38,8 +38,9 @@ This project focuses on understanding the low-level details of the HTTP/1.1 prot
    cargo run
 
 4. Test with curl:
-#!/bin/bash
+```bash
 curl -v [http://127.0.0.1:4221/](http://127.0.0.1:4221/)
+```
 
 ## 🧩 Technical Stack & Architecture
 - **Language:** Rust (2021 Edition)
