@@ -38,12 +38,18 @@ This project focuses on understanding the low-level details of the HTTP/1.1 prot
    cargo run
 
 4. Test with curl:
+#!/bin/bash
 curl -v [http://127.0.0.1:4221/](http://127.0.0.1:4221/)
 
-## 🧩 Technical Stack
-- **Language:** Rust
-- **Networking**: std::net (TcpListener, TcpStream)
-- **Threading:** std::thread
-- **File I/O:** std::fs
+## 🧩 Technical Stack & Architecture
+- **Language:** Rust (2021 Edition)
+- **Architecture:** Multi-threaded, Blocking I/O
 
+### Core Modules (std):
+- **std::net:** Raw TCP socket management (TcpListener, TcpStream).
+- **std::io:** Buffered reading/writing (BufReader) for efficient protocol parsing.
+- **std::sync:** Atomic Reference Counting (Arc) for safe state sharing across threads.
+- **std::thread:** Spawning threads for concurrent connection handling.
 
+### External Dependencies:
+- **flate2:** Implements the Gzip compression algorithm (DEFLATE).
