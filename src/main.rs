@@ -18,7 +18,7 @@ fn main() {
 fn handle_client(mut stream:TcpStream){
     // feat: Buffering and Security to prevent DOS attacks
     let mut buf_reader = BufReader::new(&mut stream);
-    let mut handle = buf_reader.by_ref().take(2048);
+    let mut handle = buf_reader.by_ref().take(2048); // Added .take(2048) to prevent crashing via RAM OOM issue.
     let mut request_line = String::new();
 
     if let Err(e) = handle.read_line(&mut request_line) {
