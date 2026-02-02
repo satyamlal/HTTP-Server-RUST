@@ -1,12 +1,14 @@
 use std::{TcpListener, TcpStream};
 use std::io::{BufReader, BufRead, Write, Read};
+use std::thread;
+
 
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:4221").expect("Could not bind");
     for stream in listener.incoming(){
         match stream {
             Ok(stream) => {
-                handle_client(stream);
+                thread::spawn(move || handle_client(stream));
             }
             Err(e) => {
                 eprintln!("Failed to establish a socket connection!");
