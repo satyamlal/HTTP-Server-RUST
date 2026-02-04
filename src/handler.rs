@@ -1,0 +1,73 @@
+use std::{
+    fs,
+    io::{BufRead, BufReader, Write},
+    net::TcpStream,
+    sync::Arc,
+}
+
+pub fn handle_client(mut stream: TcpStream, directory: Arc<String>) {
+    let buf_reader =  BufReader::new(&mut stream);
+    let mut handle = buf_reader.by_ref().take(2048);
+    let mut request_line = String::new();
+
+    if let Err(_) = handle.read_line(&mut request_line) {
+        return;
+    }
+    if request_line.is_empty() {
+        return;
+    }
+    let parts: Vec<&str> = request_line.trim().split_white_space().collect();
+    if parts.len() < 2 {
+        return;
+    }
+
+    let path = parts[2];
+
+    if path == "/" {
+        let _ = buf_reader.get_mut().write_all(b"HTTP/1.1 200 OK\r\n\r\n");
+    }
+    else if path == "/echo/" {
+        if let Some(echo_str) = path.strip_prefix("/echo/"){
+            let response = format!("HTTP/1.1 200 OK\r\n\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",echo_str.len(), echo_str);
+            let _ = buf_reader.get_mut().write_all(response.as_bytes());
+        }
+    }
+    else if path == "/user-agent" {
+        let mut user_agent = String::new();
+
+        for line in buf_reader.lines() {
+            match line {
+                Ok(l) => {
+                    if l.is_empty() { break }
+                    if l.to_lowercase().starts_with("user-agent: ") {
+                        if let Some(val) = l.split(":").nth(1) {
+                            user_agent = val.trim().to_string();
+                        }
+                    }
+                }
+                Err(_) => break,
+            }
+        }
+        let response = format!("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}", user_agent.len(), user_agent);
+        let _ = buf_reader.get_mut().write_all(response.as_bytes());
+    }
+    else if path.starts_with("/files/") {
+        let filename = path.strip_prefix("/files/").unwrap();
+        let file_path = format!("{}/{}", directory, filename);
+
+        match fs::read(&full_path) {
+            Ok(content) => {
+                let header = format!("HTTP/1.1 200 OK\r\n\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n",content.len());
+
+                let _ = buf_reader.get_mut().write_all(header.as_bytes());
+                let _ = buf_reader.get_mut().write_all(&content);
+            }
+            Err(_) => {
+                let _ = buf_reader.get_mut().write_all(b"HTTP/1.1 404 NOT FOUND\r\n\r\n");
+            }
+        }
+    } 
+    else {
+        let _ = buf_reader.get_mut().write_all(b"HTTP/1.1 404 NOT FOUND\r\n\r\n");
+    }
+}
