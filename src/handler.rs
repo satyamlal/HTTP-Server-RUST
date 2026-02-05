@@ -59,8 +59,14 @@ pub fn handle_client(mut stream: TcpStream, directory: Arc<String>) {
             Ok(content) => {
                 let header = format!("HTTP/1.1 200 OK\r\n\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n",content.len());
 
-                let _ = buf_reader.get_mut().write_all(header.as_bytes());
-                let _ = buf_reader.get_mut().write_all(&content);
+                if let Err(e) = buf_reader.get_mut().write_all(header.as_bytes()) {
+                    eprintln!("Failed to send response to client: {}", e);
+                    return;
+                }
+                if let Err(e) = buf_reader.get_mut().write_all(&content) {
+                    eprintln!("Failed to send response to client: {}", e);
+                    return;
+                }
             }
             Err(_) => {
                 let _ = buf_reader.get_mut().write_all(b"HTTP/1.1 404 NOT FOUND\r\n\r\n");
