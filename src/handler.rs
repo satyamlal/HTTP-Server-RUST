@@ -24,12 +24,19 @@ pub fn handle_client(mut stream: TcpStream, directory: Arc<String>) {
     let path = parts[2];
 
     if path == "/" {
-        let _ = buf_reader.get_mut().write_all(b"HTTP/1.1 200 OK\r\n\r\n");
+        if let Err(e) = buf_reader.get_mut().write_all(b"HTTP/1.1 200 OK\r\n\r\n") {
+            eprintln!("Failed to write response: {}", e);
+            return;
+        }
     }
     else if path == "/echo/" {
         if let Some(echo_str) = path.strip_prefix("/echo/"){
             let response = format!("HTTP/1.1 200 OK\r\n\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",echo_str.len(), echo_str);
-            let _ = buf_reader.get_mut().write_all(response.as_bytes());
+
+            if let Err(e) = buf_reader.get_mut().write_all(response.as_bytes()) {
+                eprintln!("Failed to send response to client!: {}", e);
+                return;
+            }
         }
     }
     else if path == "/user-agent" {
@@ -49,7 +56,10 @@ pub fn handle_client(mut stream: TcpStream, directory: Arc<String>) {
             }
         }
         let response = format!("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}", user_agent.len(), user_agent);
-        let _ = buf_reader.get_mut().write_all(response.as_bytes());
+        if let Err(e) = buf_reader.get_mut().write_all(response.as_bytes()) {
+            eprintln!("Failed to write headers! : {}", e);
+            return;
+        }
     }
     else if path.starts_with("/files/") {
         let filename = path.strip_prefix("/files/").unwrap();
@@ -69,7 +79,10 @@ pub fn handle_client(mut stream: TcpStream, directory: Arc<String>) {
                 }
             }
             Err(_) => {
-                let _ = buf_reader.get_mut().write_all(b"HTTP/1.1 404 NOT FOUND\r\n\r\n");
+                if let Err(e) = buf_reader.get_mut().write_all(b"HTTP/1.1 404 NOT FOUND\r\n\r\n") {
+                    eprintln!("Failed to send response to client: {}", e);
+                    return;
+                }
             }
         }
     } 
