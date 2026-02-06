@@ -65,16 +65,35 @@ pub fn handle_client(mut stream: TcpStream, directory: Arc<String>) {
         let filename = path.strip_prefix("/files/").unwrap();
         let file_path = format!("{}/{}", directory, filename);
 
-        match fs::read(&full_path) {
-            Ok(content) => {
+        if method  == "POST" {
+            let mut content_length = 0;
+            loop {
+                let mut line = String::new();
+                buf_reader.read_line(&mut line).unwrap();
+                if line == "/r/n" || "/n" {
+                    break;
+                }
+                if line.starts_with("Content-Length: ") {
+                    let len_str = line.strip_prefix("Content-Length: ").unwrap().trim();
+                    content_length = len_str.parse::<usize>().unwrap();
+                }
+            }
+            let mut body_data = vec![0;content_length];
+            buf_reader.read_exact(&mut body_data).expect("Failed to read body!");
+            fs::write(full_path, body_data).expect("Failed to write files!");
+            stream.write_all(b"HTTP/1.1 201 Created\r\n\r\n").unwrap();
+        }
+        else {
+            match fs::read(&full_path) {
+            Ok(file_content) => {
                 let header = format!("HTTP/1.1 200 OK\r\n\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n",content.len());
 
                 if let Err(e) = buf_reader.get_mut().write_all(header.as_bytes()) {
-                    eprintln!("Failed to send response to client: {}", e);
+                    eprintln!("Failed to send response header to the client: {}", e);
                     return;
                 }
-                if let Err(e) = buf_reader.get_mut().write_all(&content) {
-                    eprintln!("Failed to send response to client: {}", e);
+                if let Err(e) = buf_reader.get_mut().write_all(&file_content) {
+                    eprintln!("Failed to send response header to the client: {}", e);
                     return;
                 }
             }
@@ -82,6 +101,7 @@ pub fn handle_client(mut stream: TcpStream, directory: Arc<String>) {
                 if let Err(e) = buf_reader.get_mut().write_all(b"HTTP/1.1 404 NOT FOUND\r\n\r\n") {
                     eprintln!("Failed to send response to client: {}", e);
                     return;
+                    }
                 }
             }
         }
