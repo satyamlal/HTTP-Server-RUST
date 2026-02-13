@@ -6,14 +6,15 @@ use std::{
 
 mod config;
 mod handler;
+mod compress_data;
+mod parse_headers;
 
 use config::Config;
 use handler::handle_client;
 
 fn main() {
-
     let config = Config::build();
-    let directory = Arc::new::(config.directory);
+    let directory = Arc::new(config.directory);
 
     let listener = TcpListener::bind("127.0.0.1:4221").expect("Could not bind");
     println!("Server is listening on Port 4221 serving dir: {}", directory);
@@ -25,7 +26,7 @@ fn main() {
                 let dir_copy = Arc::clone(&directory); 
                 thread::spawn(move || handle_client(stream, dir_copy)); // concurrent connections: Multi-threading
             }
-            Err(e) => {
+            Err(_) => {
                 eprintln!("Failed to establish a socket connection!");
             }
         }

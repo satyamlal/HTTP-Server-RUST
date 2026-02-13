@@ -6,10 +6,10 @@ pub struct Config {
 
 impl Config {
     pub fn build() -> Config {
-        let args: Vec<String> = env::args::collect();
+        let args: Vec<String> = env::args().collect();
 
         let directory = if args.len() > 2 && args[1] == "--directory" {
-            args[2].clone();
+            args[2].clone()
         } else {
             String::from(".")
         };
