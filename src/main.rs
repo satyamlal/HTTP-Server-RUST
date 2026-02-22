@@ -16,7 +16,13 @@ fn main() {
     let config = Config::build();
     let directory = Arc::new(config.directory);
 
-    let listener = TcpListener::bind("127.0.0.1:4221").expect("Could not bind");
+    let listener = match TcpListener::bind("127.0.0.1:4221") {
+        Ok(l) => l,
+        Err(e) => {
+            println!("CRITICAL: Failed to bind. OS Error: {}", e);
+            process::exit(1);
+        }
+    }
     println!("Server is listening on Port 4221 serving dir: {}", directory);
 
     for stream in listener.incoming(){
