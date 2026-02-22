@@ -1,6 +1,6 @@
 # HTTP Server from Scratch (Rust)
 
-A lightweight, multi-threaded HTTP server implementation built purely in Rust without using high-level web frameworks like Actix, Axum, or Rocket.
+A lightweight, multi-threaded HTTP server implementation built purely in Rust.
 
 This project focuses on understanding the low-level details of the HTTP/1.1 protocol, TCP handling, and concurrent connection management.
 
