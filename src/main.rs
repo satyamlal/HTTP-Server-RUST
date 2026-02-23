@@ -8,9 +8,11 @@ mod config;
 mod handler;
 mod compress_data;
 mod parse_headers;
+mod pool;
 
 use config::Config;
 use handler::handle_client;
+use pool::ThreadPool;
 
 fn main() {
     let config = Config::build();
