@@ -27,15 +27,17 @@ fn main() {
     }
     println!("Server is listening on Port 4221 serving dir: {}", directory);
 
+    let pool = ThreadPool::new(4);
+
     for stream in listener.incoming(){
         match stream {
             Ok(stream) => {
                 // cloning the pointer for cheap & fast processing rather than cloning the data
                 let dir_copy = Arc::clone(&directory); 
-                thread::spawn(move || handle_client(stream, dir_copy)); // concurrent connections: Multi-threading
+                pool.execute(move || handle_client(stream, dir_copy)); // instead of raw spawing, send the closure to the pool
             }
             Err(_) => {
-                eprintln!("Failed to establish a socket connection!");
+                eprintln!("WARNING: Dropped a connection attempt: {}", e);
             }
         }
     }
