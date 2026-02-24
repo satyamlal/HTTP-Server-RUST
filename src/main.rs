@@ -36,7 +36,7 @@ fn main() {
                 let dir_copy = Arc::clone(&directory); 
                 pool.execute(move || handle_client(stream, dir_copy)); // instead of raw spawing, send the closure to the pool
             }
-            Err(_) => {
+            Err(e) => {
                 eprintln!("WARNING: Dropped a connection attempt: {}", e);
             }
         }

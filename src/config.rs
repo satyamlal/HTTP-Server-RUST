@@ -5,14 +5,18 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn build() -> Config {
-        let args: Vec<String> = env::args().collect();
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
+        args.next();
+        let mut directory = String::from(".");
 
-        let directory = if args.len() > 2 && args[1] == "--directory" {
-            args[2].clone()
-        } else {
-            String::from(".")
-        };
-        Config{ directory }
+        while let Some(args) = args.next() {
+            if args == "--directory" {
+                directory = match args.next() {
+                    Some(val) = val,
+                    None => return Err("No value provided for --directory"),
+                };
+            }
+        }
+        Ok(config {directory} )
     }
 }
