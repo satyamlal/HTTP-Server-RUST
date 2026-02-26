@@ -3,13 +3,14 @@ use std::{
     thread,
 };
 
+#[derive(Debug)]
 pub struct PoolCreationError;
 
 type Job = Box<dyn FnOnce() + Send + 'static>;
 
 pub struct ThreadPool {
     workers: Vec<Worker>,
-    sender: mpsc::Sender<Job>,
+    sender: Option<mpsc::Sender<Job>>, 
 }
 
 impl ThreadPool {
@@ -36,7 +37,7 @@ impl ThreadPool {
         F: FnOnce() + Send + 'static,
     {
         let job = Box::new(f);
-        if let Some(sender) = &self.sender{
+        if let Some(sender) = &self.sender {
             let _ = sender.send(job);
         }
     }
@@ -67,7 +68,8 @@ impl Worker {
 
             match message {
                 Ok(job) => {
-                    println!("Worker {} got a job; executing: {}", id, job());
+                    println!("Worker {} got a job; executing.", id);
+                    job(); 
                 }
                 Err(_) => {
                     println!("Worker {} disconnected; Shutting down.", id);
@@ -77,7 +79,7 @@ impl Worker {
         });
         Worker {
             id,
-            thread: Some(thread)
+            thread: Some(thread),
         }
     }
 }
